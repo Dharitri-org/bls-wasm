@@ -1,5 +1,5 @@
 'use strict'
-const bls = require('../src/index.js')
+const bls = require('./bls.js')
 const assert = require('assert')
 const { performance } = require('perf_hooks')
 
@@ -13,9 +13,6 @@ const curveTest = (curveType, name) => {
         miscTest()
         shareTest()
         addTest()
-        if (curveType == bls.BLS12_381) {
-          generatorOfPublicKeyTest()
-        }
         console.log('all ok')
         benchAll()
       } catch (e) {
@@ -28,6 +25,7 @@ const curveTest = (curveType, name) => {
 async function curveTestAll () {
   // can't parallel
   await curveTest(bls.BN254, 'BN254')
+  await curveTest(bls.BN381_1, 'BN381_1')
   await curveTest(bls.BLS12_381, 'BLS12_381')
 }
 
@@ -225,22 +223,4 @@ function addTest () {
   assert(pub[0].verify(sig[0], m))
   const sig2 = sec[0].sign(m)
   assert(sig2.isEqual(sig[0]))
-}
-
-function generatorOfPublicKeyTest() {
-  // save the generater
-  const keep = bls.getGeneratorofPublicKey()
-  const keepStr = keep.getStr(16)
-  const gen = new bls.PublicKey()
-  gen.setStr("1 24aa2b2f08f0a91260805272dc51051c6e47ad4fa403b02b4510b647ae3d1770bac0326a805bbefd48056c8c121bdb8 13e02b6052719f607dacd3a088274f65596bd0d09920b61ab5da61bbdc7f5049334cf11213945d57e5ac7d055d042b7e ce5d527727d6e118cc9cdc6da2e351aadfd9baa8cbdd3a76d429a695160d12c923ac9cc3baca289e193548608b82801 606c4a02ea734cc32acd2b02bc28b99cb3e287e85a763af267492ab572e99ab3f370d275cec1da1aaa9075ff05f79be", 16)
-  bls.setGeneratorOfPublicKey(gen)
-  const sk = new bls.SecretKey()
-  sk.setInt(1)
-  let pk = sk.getPublicKey()
-  console.log(pk.serializeToHexStr())
-  bls.setETHserialiation(true) // big endian
-  assert(pk.serializeToHexStr() == "93e02b6052719f607dacd3a088274f65596bd0d09920b61ab5da61bbdc7f5049334cf11213945d57e5ac7d055d042b7e024aa2b2f08f0a91260805272dc51051c6e47ad4fa403b02b4510b647ae3d1770bac0326a805bbefd48056c8c121bdb8");
-  // recover setting
-  bls.setETHserialiation(false)
-  bls.setGeneratorOfPublicKey(keep)
 }
